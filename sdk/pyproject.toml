@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentbreaker"
+version = "0.1.0"
+description = "Real-time budget enforcement and loop termination engine for multi-agent AI systems"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+authors = [
+  { name = "AgentBreaker Team", email = "team@agentbreaker.dev" }
+]
+keywords = [
+  "ai",
+  "agents",
+  "budget",
+  "enforcement",
+  "circuit-breaker",
+  "loop-detection",
+  "cost-control"
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: Other/Proprietary License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+  "pydantic>=2.0,<3.0",
+  "httpx>=0.24.0",
+]
+
+[project.optional-dependencies]
+postgres = [
+  "asyncpg>=0.28.0",
+  "sqlalchemy[asyncio]>=2.0,<3.0",
+]
+langchain = [
+  "langchain>=0.1.0",
+  "langchain-core>=0.1.0",
+]
+dev = [
+  "pytest>=7.4.0",
+  "pytest-asyncio>=0.21.0",
+  "pytest-cov>=4.1.0",
+  "black>=23.0.0",
+  "isort>=5.12.0",
+  "mypy>=1.4.0",
+  "ruff>=0.0.280",
+  "bandit>=1.7.5",
+]
+load-test = [
+  "locust>=2.15.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "--strict-markers --tb=short"
+
+[tool.coverage.run]
+source = ["agentbreaker"]
