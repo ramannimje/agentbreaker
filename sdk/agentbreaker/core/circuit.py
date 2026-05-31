@@ -15,6 +15,7 @@ from agentbreaker.models import (
     VelocityBreachError,
 )
 from agentbreaker.store.memory import InMemoryStore
+from agentbreaker.store.factory import create_store_from_env
 from agentbreaker.core.fingerprint import FingerprintEngine
 from agentbreaker.core.velocity import VelocityGate
 
@@ -80,7 +81,7 @@ class _SessionContext:
             )
 
 
-def session(session_id: UUID, budget: Optional[int] = None, team_id: Optional[str] = None, project_id: Optional[str] = None, task_total: Optional[int] = None, store: Optional[InMemoryStore] = None):
+def session(session_id: UUID, budget: Optional[int] = None, team_id: Optional[str] = None, project_id: Optional[str] = None, task_total: Optional[int] = None, store: Optional[object] = None):
     """Factory that returns a decorator or async context manager for a session.
 
     Usage:
@@ -90,17 +91,22 @@ def session(session_id: UUID, budget: Optional[int] = None, team_id: Optional[st
     async with session(session_id=sid) as s:
         await s.record(...)
     """
-    if store is None:
-        store = InMemoryStore()
+    # Delay store creation until context enter; allow env-driven store selection
+    # If `store` is provided, use it; otherwise create using environment settings.
     fingerprint = FingerprintEngine(window_size=10, repeat_threshold=3)
     velocity = VelocityGate()
 
     @asynccontextmanager
     async def _ctx():
+        # Lazily create store if not provided
+        store_obj = store
+        if store_obj is None:
+            store_obj = await create_store_from_env()
+
         # ensure session exists
         s = SessionBudget(session_id=session_id, team_id=team_id or "", project_id=project_id or "default", token_budget=budget or 100000, task_total=task_total)
-        await store.create_session(s)
-        ctx = _SessionContext(session_id, store, fingerprint, velocity)
+        await store_obj.create_session(s)
+        ctx = _SessionContext(session_id, store_obj, fingerprint, velocity)
         try:
             yield ctx
         finally:
