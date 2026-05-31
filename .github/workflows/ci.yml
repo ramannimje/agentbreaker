@@ -27,10 +27,10 @@ jobs:
           pip install -e sdk[dev]
       - name: Lint (ruff)
         run: |
-          ruff check . || true
+          ruff check .
       - name: Run type checks (mypy)
         run: |
-          mypy sdk || true
+          mypy sdk
       - name: Run tests with coverage
         env:
           AGENTBREAKER_DATABASE_URL: ${{ secrets.AGENTBREAKER_DATABASE_URL }}
