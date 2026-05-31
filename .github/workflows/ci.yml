@@ -9,6 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/api/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -18,6 +25,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r api/requirements.txt
           pip install -e sdk[dev]
-      - name: Run tests
+      - name: Lint (ruff)
         run: |
-          pytest -q
+          ruff check . || true
+      - name: Run type checks (mypy)
+        run: |
+          mypy sdk || true
+      - name: Run tests with coverage
+        env:
+          AGENTBREAKER_DATABASE_URL: ${{ secrets.AGENTBREAKER_DATABASE_URL }}
+        run: |
+          pytest --cov=.
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: .coverage
