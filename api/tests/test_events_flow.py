@@ -1,20 +1,16 @@
 import os
 import pytest
-import asyncio
 
 from httpx import AsyncClient
 
-from api.app.main import app
-
-DATABASE_URL = os.getenv("AGENTBREAKER_DATABASE_URL")
-
-
-pytestmark = pytest.mark.skipif(not DATABASE_URL, reason="AGENTBREAKER_DATABASE_URL not set")
-
 
 @pytest.mark.asyncio
-async def test_events_tool_call_creates_alert_and_broadcast(monkeypatch):
-    # Ensure app startup uses test DATABASE_URL
+async def test_events_tool_call_creates_alert_and_broadcast(postgres_url):
+    # ensure env var is set for app init
+    os.environ["AGENTBREAKER_DATABASE_URL"] = postgres_url
+    from api.app.main import create_app
+
+    app = create_app()
     async with AsyncClient(app=app, base_url="http://test") as ac:
         # create a session with tiny budget
         resp = await ac.post("/sessions", json={"project_id": "p1", "token_budget": 3})

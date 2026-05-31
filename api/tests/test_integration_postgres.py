@@ -1,4 +1,3 @@
-import os
 import asyncio
 import pytest
 from uuid import uuid4
@@ -6,15 +5,10 @@ from uuid import uuid4
 from agentbreaker.store.postgres import PostgresStore
 from agentbreaker.models import SessionBudget
 
-DATABASE_URL = os.getenv("AGENTBREAKER_DATABASE_URL")
-
-
-pytestmark = pytest.mark.skipif(not DATABASE_URL, reason="AGENTBREAKER_DATABASE_URL not set")
-
 
 @pytest.mark.asyncio
-async def test_postgresstore_atomic_decrement():
-    store = await PostgresStore.connect(DATABASE_URL)
+async def test_postgresstore_atomic_decrement(postgres_url):
+    store = await PostgresStore.connect(postgres_url)
     sid = uuid4()
     s = SessionBudget(session_id=sid, team_id="t1", project_id="p1", token_budget=100)
     await store.create_session(s)
