@@ -35,7 +35,19 @@ jobs:
         env:
           AGENTBREAKER_DATABASE_URL: ${{ secrets.AGENTBREAKER_DATABASE_URL }}
         run: |
-          pytest --cov=.
+          pytest --cov=. --cov-report=xml:coverage.xml
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
