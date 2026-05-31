@@ -2,7 +2,9 @@ from fastapi import FastAPI
 
 from .config import settings
 from .database import init_db, close_db
-from .routers import sessions, health
+from .routers import sessions, health, alerts, events
+from .websocket import broadcaster
+from fastapi import WebSocket
 
 
 def create_app() -> FastAPI:
@@ -17,7 +19,27 @@ def create_app() -> FastAPI:
         await close_db()
 
     app.include_router(sessions.router)
+    app.include_router(events.router)
+    app.include_router(alerts.router)
     app.include_router(health.router)
+
+    @app.websocket("/ws/sessions/{session_id}")
+    async def ws_session(websocket: WebSocket, session_id: str):
+        await broadcaster.connect(websocket, session_id=session_id)
+        try:
+            while True:
+                await websocket.receive_text()
+        except Exception:
+            await broadcaster.disconnect(websocket)
+
+    @app.websocket("/ws/sessions")
+    async def ws_all(websocket: WebSocket):
+        await broadcaster.connect(websocket, session_id=None)
+        try:
+            while True:
+                await websocket.receive_text()
+        except Exception:
+            await broadcaster.disconnect(websocket)
 
     return app
 
