@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 from ..database import get_pool
 from ..services import escalation
 from ..websocket import broadcaster
+from ..metrics import TOOL_CALLS
 
 router = APIRouter()
 
@@ -49,6 +50,12 @@ async def tool_call_event(event: ToolCallEvent, background: BackgroundTasks, poo
         "status": "active",
     }
     await broadcaster.broadcast(payload, session_id=str(event.session_id))
+
+    # update metrics
+    try:
+        TOOL_CALLS.inc()
+    except Exception:
+        pass
 
     # if there's a breach_type, create an alert and escalate
     if event.breach_type:
