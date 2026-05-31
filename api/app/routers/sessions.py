@@ -29,6 +29,13 @@ async def create_session(req: CreateSessionRequest, pool=Depends(get_pool)):
     return {"session_id": str(sid)}
 
 
+@router.get("/sessions")
+async def list_sessions(pool=Depends(get_pool)):
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("SELECT * FROM sessions ORDER BY created_at DESC")
+        return [dict(row) for row in rows]
+
+
 @router.get("/sessions/{session_id}")
 async def get_session(session_id: UUID, pool=Depends(get_pool)):
     async with pool.acquire() as conn:

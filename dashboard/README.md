@@ -29,9 +29,6 @@ npm run dev
 # Build for production
 npm run build
 
-# Run tests
-npm test
-
 # Lint and format
 npm run lint
 npm run format
